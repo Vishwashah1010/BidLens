@@ -1,6 +1,5 @@
 import express from "express";
 import path from "path";
-import { createServer as createViteServer } from "vite";
 import { GoogleGenAI, Type } from "@google/genai";
 import { createRequire } from "module";
 let pdfParser: any;
@@ -923,6 +922,7 @@ async function startServer() {
   // Serve static assets in production or set up Vite middleware in development
   if (process.env.NODE_ENV !== "production" && !process.env.VERCEL) {
     console.log("[Server] Mounting Vite developer server middleware...");
+    const { createServer: createViteServer } = await import("vite");
     const vite = await createViteServer({
       server: { middlewareMode: true },
       appType: "spa",
