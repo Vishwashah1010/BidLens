@@ -1,0 +1,6 @@
+{
+  "name": "BidLens",
+  "description": "Agentic Bid Auditor, Compliance Guard & Tribal Memory Capitalizer with offline-first capabilities for remote project sites.",
+  "requestFramePermissions": ["microphone"],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}
