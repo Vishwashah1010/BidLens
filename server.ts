@@ -1,13 +1,14 @@
 import express from "express";
 import path from "path";
-import { fileURLToPath } from "url";
 import { createServer as createViteServer } from "vite";
 import { GoogleGenAI, Type } from "@google/genai";
 import { createRequire } from "module";
-const require = createRequire(import.meta.url);
 let pdfParser: any;
 try {
-  const loaded = require("pdf-parse");
+  const moduleName = "pdf-parse";
+  const loaded = typeof require !== "undefined"
+    ? require(moduleName)
+    : createRequire(import.meta.url)(moduleName);
   pdfParser = typeof loaded === "function" ? loaded : (loaded && loaded.default) || loaded;
 } catch (e: any) {
   console.error("Failed to load pdf-parse:", e.message);
@@ -15,9 +16,6 @@ try {
 import dotenv from "dotenv";
 
 dotenv.config();
-
-const __filename = fileURLToPath(import.meta.url);
-const __dirname = path.dirname(__filename);
 
 // Helper for lazy loading Gemini API client
 let aiInstance: GoogleGenAI | null = null;
