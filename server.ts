@@ -857,7 +857,64 @@ Return exactly in the schema JSON format.`;
       console.error("Gemini RFI Generation Error:", err.message);
       logServiceEvent("error", "gemini-3.5-flash", "/api/generate-rfi", `Failed RFI generation: ${err.message || "Unknown error"}`, err.status || 500);
       const mockResult = getMockRFI(subcontractor || "Subcontractor", gaps || []);
-      return res.json({ rfi: mockResult, error: err.message, isMock: true, hasKey: !!process.env.GEMINI_API_KEY });
+    }
+  });
+
+  // API 5: Chatbot Assistant
+  app.post("/api/chat", async (req, res) => {
+    const { message, history } = req.body;
+    
+    const apiKey = process.env.GEMINI_API_KEY;
+    const isKeyConfigured = !!apiKey && apiKey !== "MY_GEMINI_API_KEY" && apiKey.trim() !== "";
+
+    if (!isKeyConfigured) {
+      // Local fallback responses based on keywords
+      const msg = (message || "").toLowerCase();
+      let reply = "I am the BidLens Assistant! I can help you with performing compliance audits, logging PM journals, and drafting RFIs. What would you like to know?";
+      
+      if (msg.includes("audit") || msg.includes("compliance") || msg.includes("gap")) {
+        reply = "To run a compliance audit:\n1. Select a Master Specification from the top panel (e.g. Concrete Spec).\n2. Load a Subcontractor Bid (preset or upload a custom one).\n3. Click 'Audit Proposal' or 'Re-Audit Proposal'.\n4. Review the detected scope discrepancies, risk levels, and estimated financial leakages in the Gap Matrix tab.";
+      } else if (msg.includes("offline") || msg.includes("emulate") || msg.includes("fallback")) {
+        reply = "BidLens has robust Offline-First capabilities! If you lose connection or don't configure a GEMINI_API_KEY, the system activates 'Local Emulated' mode. All audit matrices, tribal Memory ratings, and RFI drafts will use high-fidelity mock generators. Drafted RFIs are saved in the 'Offline Outbox Sync Queue' and automatically sync when online connection is restored.";
+      } else if (msg.includes("tribal") || msg.includes("pm note") || msg.includes("scorecard") || msg.includes("sentiment")) {
+        reply = "The AI Tribal Sentiment Engine helps capture field intelligence. Go to the 'AI Tribal Sentiment Engine' tab, type your field journals, or click the mic button to record voice memos. The system parses these raw logs to score vendors out of 5 stars for Reliability, workmanship Quality, and Pricing Honesty, building a historic scorecard.";
+      } else if (msg.includes("rfi") || msg.includes("draft") || msg.includes("clarification")) {
+        reply = "Once the audit detects scope gaps, navigate to the 'Agentic Action RFI Panel'. You will see an automatically drafted, formal RFI email listing the exact omissions (like formwork steel grades or waste cleanup). You can edit the text and click 'Send RFI' (or 'Queue RFI' if working offline).";
+      } else if (msg.includes("owner") || msg.includes("creator")) {
+        reply = "Kaya SmartProcure (BidLens) was built as an agentic assistant for modern construction estimators and general contractors to secure project budgets and prevent change order leakage.";
+      }
+      
+      return res.json({ reply, isMock: true });
+    }
+
+    try {
+      const ai = getGeminiClient();
+      
+      // Map frontend history into correct API types
+      const chatHistory = (history || []).map((h: any) => ({
+        role: h.role === "user" ? "user" : "model",
+        parts: [{ text: h.text }]
+      }));
+      
+      const chat = ai.chats.create({
+        model: "gemini-3.5-flash",
+        history: [
+          {
+            role: "user",
+            parts: [{ text: "You are a helpful AI Procurement Guide for BidLens / Kaya SmartProcure. BidLens is an agentic bid auditor, compliance guard, and tribal memory capitalizer. Keep your responses helpful, professional, and concise." }]
+          },
+          ...chatHistory
+        ]
+      });
+
+      const response = await chat.sendMessage({ message });
+      return res.json({ reply: response.text || "I am here to help!", isMock: false });
+    } catch (err: any) {
+      console.error("Gemini Assistant Error:", err.message);
+      return res.json({ 
+        reply: `I am currently operating in fallback mode due to: ${err.message}. How can I assist you with using BidLens features?`,
+        isMock: true 
+      });
     }
   });
 

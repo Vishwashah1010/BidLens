@@ -14,6 +14,7 @@ import TribalMemory from "./components/TribalMemory";
 import RfiActionPanel from "./components/RfiActionPanel";
 import ProjectSummaryOverlay from "./components/ProjectSummaryOverlay";
 import AuditHistory, { AuditLogEntry } from "./components/AuditHistory";
+import ApiAssistant from "./components/ApiAssistant";
 
 import { masterSpecs, preloadedBids, preloadedTribalNotes } from "./data";
 import { MasterSpec, Bid, TribalNote, RfiDraft, SyncAction } from "./types";
@@ -710,6 +711,9 @@ export default function App() {
         bids={bids}
         onSelectBid={handleSelectBid}
       />
+
+      {/* AI CHATBOT GUIDE ASSISTANT */}
+      <ApiAssistant />
 
       {/* SYSTEM ADVISORY FOOTER */}
       <footer className="h-8 bg-[#F1F5F9] border-t border-[#E1E4E8] flex items-center px-6 justify-between shrink-0 z-10">
