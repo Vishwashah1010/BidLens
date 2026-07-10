@@ -221,8 +221,7 @@ setInterval(() => {
 const app = express();
 export { app };
 
-async function startServer() {
-  const PORT = process.env.PORT ? parseInt(process.env.PORT, 10) : 3000;
+const PORT = process.env.PORT ? parseInt(process.env.PORT, 10) : 3000;
 
   interface ServiceEvent {
     timestamp: string;
@@ -920,15 +919,16 @@ Return exactly in the schema JSON format.`;
     }
   });
 
+async function startServer() {
   // Serve static assets in production or set up Vite middleware in development
-  if (process.env.NODE_ENV !== "production") {
+  if (process.env.NODE_ENV !== "production" && !process.env.VERCEL) {
     console.log("[Server] Mounting Vite developer server middleware...");
     const vite = await createViteServer({
       server: { middlewareMode: true },
       appType: "spa",
     });
     app.use(vite.middlewares);
-  } else {
+  } else if (!process.env.VERCEL) {
     console.log("[Server] Production Mode: Serving static files from dist...");
     const distPath = path.join(process.cwd(), "dist");
     app.use(express.static(distPath));
