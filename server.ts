@@ -1,14 +1,13 @@
 import express from "express";
 import path from "path";
 import { GoogleGenAI, Type } from "@google/genai";
-import { createRequire } from "module";
 let pdfParser: any;
 try {
-  const moduleName = "pdf-parse";
-  const loaded = typeof require !== "undefined"
-    ? require(moduleName)
-    : createRequire(import.meta.url)(moduleName);
-  pdfParser = typeof loaded === "function" ? loaded : (loaded && loaded.default) || loaded;
+  const req = typeof require !== "undefined" ? require : null;
+  if (req) {
+    const loaded = req("pdf-parse");
+    pdfParser = typeof loaded === "function" ? loaded : (loaded && loaded.default) || loaded;
+  }
 } catch (e: any) {
   console.error("Failed to load pdf-parse:", e.message);
 }
