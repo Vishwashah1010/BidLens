@@ -218,8 +218,10 @@ setInterval(() => {
   }
 }, 5 * 60 * 1000);
 
+const app = express();
+export { app };
+
 async function startServer() {
-  const app = express();
   const PORT = process.env.PORT ? parseInt(process.env.PORT, 10) : 3000;
 
   interface ServiceEvent {
@@ -935,9 +937,16 @@ Return exactly in the schema JSON format.`;
     });
   }
 
-  app.listen(PORT, "0.0.0.0", () => {
-    console.log(`[Kaya SmartProcure] Running at http://localhost:${PORT}`);
-  });
+  if (!process.env.VERCEL) {
+    app.listen(PORT, "0.0.0.0", () => {
+      console.log(`[Kaya SmartProcure] Running at http://localhost:${PORT}`);
+    });
+  }
 }
 
 startServer();
+
+export default app;
+if (typeof module !== "undefined") {
+  module.exports = app;
+}
