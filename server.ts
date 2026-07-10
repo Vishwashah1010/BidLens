@@ -947,6 +947,3 @@ async function startServer() {
 startServer();
 
 export default app;
-if (typeof module !== "undefined") {
-  module.exports = app;
-}
